@@ -6,6 +6,8 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.launch
 import org.firstinspires.ftc.teamcode.lib.TickerSystem
 import org.futurerobotics.jargon.running.Ticker
+import org.futurerobotics.jargon.running.TickerListener
+import org.futurerobotics.jargon.running.syncedLoop
 import kotlin.math.abs
 import kotlin.math.roundToLong
 
@@ -35,7 +37,7 @@ class TeleOp1(system: IRobotSystem) : IRobotSystem by system, TickerSystem {
     val toFancySignal get() = buttons.a.isClicked
     val toManualSignal get() = buttons.b.isClicked
     //ticker
-    val listener = ticker.listener(0)
+    lateinit var listener: TickerListener
 
     var armAngle: Double
         get() = arm.position
@@ -95,6 +97,7 @@ class TeleOp1(system: IRobotSystem) : IRobotSystem by system, TickerSystem {
 
     override fun launchSystem(scope: CoroutineScope, ticker: Ticker) {
         scope.launch {
+            listener = ticker.listener(0)
             state = with(state) { run() }
         }
     }
