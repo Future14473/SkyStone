@@ -201,7 +201,7 @@ private constructor(
 }
 
 /**
- * Continas a [channel] which broadcasts [MotorBulkData] (wrapper around [RevBulkData]s)
+ * Contains a [channel] which broadcasts [MotorBulkData] (wrapper around [RevBulkData]s)
  */
 @UseExperimental(ExperimentalCoroutinesApi::class)
 class BulkDataBroadcaster(
