@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.lib.system
+package org.firstinspires.ftc.teamcode.lib.bot
 
 import org.futurerobotics.jargon.math.convert.*
 import org.futurerobotics.jargon.mechanics.MotorModel

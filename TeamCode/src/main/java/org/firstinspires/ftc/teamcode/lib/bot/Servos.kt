@@ -10,7 +10,7 @@ val FLICKER_RANGE = 0.5..0.5
 
 
 /**
- * Simple wrapper around a [servo] where you can change [isOpen] and it will go between [openPosition] and [closedPosition].
+ * Simple wrapper around a [servo] where you can change [isOpen] and it will go between a given [openCloseRange]
  */
 class ServoDoor(
     private val servo: Servo,

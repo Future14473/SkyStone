@@ -4,7 +4,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import org.firstinspires.ftc.teamcode.lib.SYSTEM_PERIOD
 import org.firstinspires.ftc.teamcode.lib.TickerSystem
-import org.firstinspires.ftc.teamcode.lib.system.driveModel
 import org.futurerobotics.jargon.blocks.Block
 import org.futurerobotics.jargon.blocks.BlockArrangementBuilder
 import org.futurerobotics.jargon.blocks.buildBlockSystem

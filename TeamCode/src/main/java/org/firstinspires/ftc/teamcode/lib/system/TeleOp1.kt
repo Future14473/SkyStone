@@ -81,7 +81,7 @@ class TeleOp1(system: IRobotSystem) : IRobotSystem by system, TickerSystem {
     }
 
     /** Includes [update] */
-    suspend inline fun pause(millis: Long) { //includes updates.
+    suspend inline fun pause(millis: Long) {
         val startMillis = System.nanoTime()
         val deadline = startMillis + millis * 1_000_000
         waitUntil {
