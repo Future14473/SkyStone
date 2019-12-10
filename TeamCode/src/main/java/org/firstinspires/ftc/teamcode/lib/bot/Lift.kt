@@ -38,7 +38,7 @@ class Lift(private val motors: MotorsBlock) : TickerSystem {
                 3.0,
                 4.0
             )
-        private const val feedForward = 3 //(always added to output, because gravity
+        private const val feedForward = 1 //always added to output, to try and compensate for gravity
     }
 
     val targetHeight = BoundedPositionBlock(0.0, bounds)

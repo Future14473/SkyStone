@@ -2,103 +2,55 @@ package org.firstinspires.ftc.teamcode.lib.system
 
 import com.qualcomm.robotcore.hardware.Gamepad
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.launch
 import org.firstinspires.ftc.teamcode.lib.TickerSystem
+import org.futurerobotics.jargon.math.Pose2d
+import org.futurerobotics.jargon.math.convert.*
 import org.futurerobotics.jargon.running.Ticker
-import org.futurerobotics.jargon.running.TickerListener
 import org.futurerobotics.jargon.running.syncedLoop
-import kotlin.math.abs
-import kotlin.math.roundToLong
 
-//scroll alll the way down for TeleOp1
+const val MAX_SPEED = 0.8 * m / s
+const val MAX_ANG_SPEED = 1.5 * rad / s
+const val MAX_SLOW_FACTOR = .4
 
-//additional teleOp
-fun TeleOp1.additional() {
-    val intakeSignal = (gamepad.right_trigger - gamepad.left_trigger / 2).toDouble()
-    intake.power = intakeSignal
+private fun TeleOp1.run() {
+    if (buttons.a.isClicked) grabber.close()
+    if (buttons.b.isClicked) grabber.open()
+    if (buttons.x.isClicked) directionMultiplier = -1 //intake side
+    if (buttons.y.isClicked) directionMultiplier = 1
+    manualDrive.targetVelocity.value = getPoseVelocity()
 }
 
-@UseExperimental(ExperimentalCoroutinesApi::class)
 class TeleOp1(system: IRobotSystem) : IRobotSystem by system, TickerSystem {
+    private val gamepad: Gamepad = opMode.gamepad1
 
-    var state: ArmState = ArmState.Ready
+    var directionMultiplier = -1 //start intake side
 
-    //controls
-    val gamepad: Gamepad = opMode.gamepad2
-    private val buttons = Buttons(gamepad)
-
-    val liftSignal get() = -gamepad.right_stick_y
-    val armSignal get() = -gamepad.left_stick_y
-
-    val grabSignal get() = buttons.right_bumper.isClicked
-    val releaseSignal get() = buttons.left_bumper.isClicked
-
-    val toFancySignal get() = buttons.a.isClicked
-    val toOldSchoolSignal get() = buttons.b.isClicked
-    //ticker
-    lateinit var listener: TickerListener
-
-    var armAngle: Double
-        get() = arm.position
-        set(value) {
-            arm.position = value
+    fun getPoseVelocity(): Pose2d =
+        if (gamepad.right_trigger > 0) Pose2d.ZERO
+        else {
+            val x = gamepad.right_stick_y * MAX_SPEED * directionMultiplier //UP is +x
+            val y = gamepad.right_stick_x * MAX_SPEED * directionMultiplier
+            val heading = -gamepad.left_stick_x * MAX_ANG_SPEED
+            Pose2d(x, y, heading) * (1.0 - gamepad.left_trigger * (1 - MAX_SLOW_FACTOR))
         }
 
-    var targetLiftHeight: Double
-        get() = lift.targetHeight.position
-        set(value) {
-            lift.targetHeight.position = value
-        }
-    val actualLiftHeight: Double get() = lift.actualHeight.value ?: 0.0
+    val buttons = Buttons(gamepad)
 
-    var additionalIntakePower = 0.0
-
-
-    suspend inline fun loop(block: () -> Unit): Nothing {
-        listener.syncedLoop {
-            update()
-            block()
-            false
-        }
-        throw AssertionError()
-    }
-
-    /** Includes [update] */
-    suspend inline fun waitUntil(condition: () -> Boolean) {
-        while (!condition()) {
-            listener.awaitNextTick()
-            update()
-        }
-    }
-
-    /**
-     * Should run every loop.
-     */
-    fun update() {
+    private fun update() {
         buttons.update()
-        additional()
-    }
-
-    /** Includes [update] */
-    suspend inline fun pause(millis: Long) {
-        val startMillis = System.nanoTime()
-        val deadline = startMillis + millis * 1_000_000
-        waitUntil {
-            System.nanoTime() - deadline > 0
-        }
-    }
-
-    suspend inline fun moveArmToAndWait(position: Double) {
-        val pastPosition = armAngle
-        armAngle = position
-        pause((abs(pastPosition - position) * 250).roundToLong())
     }
 
     override fun launchSystem(scope: CoroutineScope, ticker: Ticker) {
         scope.launch {
-            listener = ticker.listener(0)
-            state = with(state) { run() }
+            grabber.open()
+            ticker.listener(0).syncedLoop {
+                update()
+                run()
+                false
+            }
         }
     }
 }
+
+

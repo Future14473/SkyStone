@@ -18,10 +18,11 @@ val wheelMotorModel = MotorModel.fromMotorData(
     0.25 * A
 )
 val wheelTransmission = TransmissionModel.fromTorqueMultiplier(wheelMotorModel, 2.0, 0.0, 0.9)
-const val botMass = 24 * lbs
+const val botMass = 33.4 * lbs
+val moi = botMass / 3 * (16 * `in`).pow(2) //todo: find out empirically
 val driveModel = NominalDriveModel.mecanumLike(
     botMass,
-    botMass / 3 * (16 * `in`).pow(2), //todo: find out empirically
+    moi,
     wheelTransmission,
     2 * `in` / sqrt(2.0),
     8 * `in`,

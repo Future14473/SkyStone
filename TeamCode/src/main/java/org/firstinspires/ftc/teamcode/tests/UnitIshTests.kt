@@ -17,7 +17,7 @@ import java.util.*
 @TeleOp
 class SingleServoTest : CoroutineOpMode() {
 
-    private val name = "ArmLeft"
+    private val name = "Grabber"
 
     override suspend fun runOpMode() {
         val servo = hardwareMap.get(Servo::class.java, name)
@@ -30,6 +30,7 @@ class SingleServoTest : CoroutineOpMode() {
 
             position += stick / 20
             servo.position = position
+            telemetry.addLine("name:     $name")
             telemetry.addLine("position: $position")
             telemetry.update()
         }
@@ -54,6 +55,7 @@ class SingleMotorTest : CoroutineOpMode() {
             }
             val stick = gamepad1.left_stick_y.toDouble()
             motor.power = stick
+            telemetry.addLine("name:     $name")
             telemetry.addLine("position: ${motor.currentPosition}")
             telemetry.update()
         }

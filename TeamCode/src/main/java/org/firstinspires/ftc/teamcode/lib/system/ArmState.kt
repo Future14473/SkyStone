@@ -13,6 +13,7 @@ import kotlin.math.sqrt
 //random constants for the arm.
 
 private const val ARM_READY = -80 * deg
+private const val ARM_READY_PLUS = -60 * deg
 private const val ARM_GRAB = -120 * deg
 private const val ARM_UP = -20 * deg
 private const val ARM_FORWARD = 90 * deg
@@ -24,7 +25,7 @@ private const val X_SENSITIVITY = 0.4 * m * SYSTEM_PERIOD
 
 private const val LIFT_DOWN_TOLERANCE = 3 * cm
 //TODO: actually measure the arm
-private const val ARM_LENGTH = 35 * cm
+private const val ARM_LENGTH = 26.6 * cm
 
 private val X_BOUNDS = ARM_LENGTH * sin(ARM_UP)..ARM_LENGTH
 private val Y_BOUNDS = Lift.bounds
@@ -36,9 +37,10 @@ private val Y_BOUNDS = Lift.bounds
 enum class ArmState {
 
     Ready {
-        override suspend fun TeleOp1.run(): ArmState {
+        override suspend fun TeleOp2.run(): ArmState {
             targetLiftHeight = 0.0
             claw.open()
+            moveArmToAndWait(ARM_READY_PLUS)
             moveArmToAndWait(ARM_READY)
             waitUntil {
                 actualLiftHeight distTo 0.0 <= LIFT_DOWN_TOLERANCE
@@ -53,13 +55,13 @@ enum class ArmState {
         }
     },
     ArmIn { //claw on robot side, lift down.
-        override suspend fun TeleOp1.run(): ArmState {
+        override suspend fun TeleOp2.run(): ArmState {
             targetLiftHeight = 0.0
 
             loop {
                 //if trying to raise or go forward, move.
                 val moveSignal = liftSignal + armSignal
-                additionalIntakePower = if (moveSignal > 0 || armAngle < ARM_READY) 0.5 else 0.0
+                additionalIntakePower = if (moveSignal > 0 && armAngle < ARM_READY) 0.5 else 0.0
                 armAngle += moveSignal * ARM_SENSITIVITY
                 if (releaseSignal) {
                     additionalIntakePower = 0.0
@@ -76,7 +78,7 @@ enum class ArmState {
         }
     },
     OldSchoolControl { //Arm and lift in full control. Arm can only be in up<->forward positions.
-        override suspend fun TeleOp1.run(): ArmState {
+        override suspend fun TeleOp2.run(): ArmState {
             loop {
                 val isDown = targetLiftHeight == 0.0 && liftSignal <= 0
                 val armMax = if (isDown || armAngle >= ARM_FORWARD) ARM_MAX else ARM_FORWARD
@@ -93,7 +95,7 @@ enum class ArmState {
         }
     },
     FancyControl {
-        override suspend fun TeleOp1.run(): ArmState {
+        override suspend fun TeleOp2.run(): ArmState {
             val l = ARM_LENGTH
 
             val h0 = targetLiftHeight
@@ -111,17 +113,15 @@ enum class ArmState {
         }
     },
     Drop {
-        override suspend fun TeleOp1.run(): ArmState {
+        override suspend fun TeleOp2.run(): ArmState {
             claw.open()
             pause(200)
-            if (armAngle >= ARM_FORWARD) {
-                targetLiftHeight += 3 * `in`
-                pause(200)
-            }
+            targetLiftHeight += 3 * `in`
+            pause(200)
             moveArmToAndWait(ARM_UP)
             return Ready
         }
     };
 
-    abstract suspend fun TeleOp1.run(): ArmState
+    abstract suspend fun TeleOp2.run(): ArmState
 }

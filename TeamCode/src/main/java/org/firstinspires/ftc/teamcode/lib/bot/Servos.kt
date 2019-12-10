@@ -1,13 +1,14 @@
 package org.firstinspires.ftc.teamcode.lib.bot
 
 import com.qualcomm.robotcore.hardware.Servo
+import com.qualcomm.robotcore.util.RobotLog
 
 //constants for various servo doors.
 
 val CLAW_RANGE = 0.0..1.0
 //TODO: find values
-val GRABBER_RANGE = 0.5..0.5
-val FLICKER_RANGE = 0.5..0.5
+val GRABBER_RANGE = 0.35..0.0
+val FLICKER_RANGE = 1.0..0.4
 
 
 /**
@@ -19,7 +20,7 @@ class ServoDoor(
     initialOpen: Boolean = false
 ) {
 
-    var isOpen: Boolean = false
+    var isOpen: Boolean = initialOpen
         set(open) {
             servo.position = if (open) openCloseRange.start else openCloseRange.endInclusive
 
@@ -35,6 +36,8 @@ class ServoDoor(
     }
 
     init {
-        this.isOpen = initialOpen
+        //for some reason isOpen = initialOpen doesn't work
+        RobotLog.d("Initial   to $initialOpen")
+        servo.position = if (initialOpen) openCloseRange.start else openCloseRange.endInclusive
     }
 }
