@@ -14,7 +14,7 @@ import org.openftc.revextensions2.ExpansionHubEx
 import com.qualcomm.robotcore.hardware.Servo as LibServo
 
 /**
- * Contains hardware. May have `null` values if thing don't exist.
+ * Contains hardware. May have `null` values if things don't exist.
  */
 @UseExperimental(ExperimentalCoroutinesApi::class)
 class Hardware(map: HardwareMap) {

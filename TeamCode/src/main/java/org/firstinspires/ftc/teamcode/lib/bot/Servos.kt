@@ -5,6 +5,7 @@ import com.qualcomm.robotcore.hardware.Servo
 //constants for various servo doors.
 
 val CLAW_RANGE = 0.0..1.0
+//TODO: find values
 val GRABBER_RANGE = 0.5..0.5
 val FLICKER_RANGE = 0.5..0.5
 

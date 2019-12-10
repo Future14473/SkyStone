@@ -23,7 +23,7 @@ private const val ARM_SENSITIVITY = 2.5 * rad * SYSTEM_PERIOD
 private const val X_SENSITIVITY = 0.4 * m * SYSTEM_PERIOD
 
 private const val LIFT_DOWN_TOLERANCE = 3 * cm
-
+//TODO: actually measure the arm
 private const val ARM_LENGTH = 35 * cm
 
 private val X_BOUNDS = ARM_LENGTH * sin(ARM_UP)..ARM_LENGTH
