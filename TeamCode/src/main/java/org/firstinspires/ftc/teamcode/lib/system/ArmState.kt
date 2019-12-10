@@ -101,16 +101,12 @@ enum class ArmState {
             var x = l * sin(th0)
             var y = l * cos(th0) + h0
             loop {
-                y = (y + liftSignal * LIFT_SENSITIVITY).coerceIn(
-                    Y_BOUNDS
-                )
-                x = (x + armSignal * X_SENSITIVITY).coerceIn(
-                    X_BOUNDS
-                )
+                y = (y + liftSignal * LIFT_SENSITIVITY).coerceIn(Y_BOUNDS)
+                x = (x + armSignal * X_SENSITIVITY).coerceIn(X_BOUNDS)
                 armAngle = asin(x / l)
                 targetLiftHeight = y - sqrt(l * l - x * x)
                 if (releaseSignal) return Drop
-                if (toManualSignal) return OldSchoolControl
+                if (toOldSchoolSignal) return OldSchoolControl
             }
         }
     },

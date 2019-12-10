@@ -35,7 +35,7 @@ class TeleOp1(system: IRobotSystem) : IRobotSystem by system, TickerSystem {
     val releaseSignal get() = buttons.left_bumper.isClicked
 
     val toFancySignal get() = buttons.a.isClicked
-    val toManualSignal get() = buttons.b.isClicked
+    val toOldSchoolSignal get() = buttons.b.isClicked
     //ticker
     lateinit var listener: TickerListener
 
