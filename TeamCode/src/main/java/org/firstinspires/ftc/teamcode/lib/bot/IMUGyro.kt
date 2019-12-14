@@ -1,9 +1,6 @@
 package org.firstinspires.ftc.teamcode.lib.bot
 
 import com.qualcomm.hardware.bosch.BNO055IMU
-import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit
-import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder
-import org.firstinspires.ftc.robotcore.external.navigation.AxesReference
 import org.futurerobotics.jargon.hardware.Gyro
 
 /**
@@ -13,11 +10,10 @@ import org.futurerobotics.jargon.hardware.Gyro
  *
  * ***NOT INITIALIZED ON START***
  */
-class IMUGyro(private val imu: BNO055IMU) : Gyro {
+class IMUGyro(val imu: BNO055IMU) : Gyro {
 
     companion object {
         private val imuParams = BNO055IMU.Parameters().apply {
-            mode = BNO055IMU.SensorMode.GYRONLY
             angleUnit = BNO055IMU.AngleUnit.RADIANS
             loggingEnabled = false
         }
@@ -30,9 +26,5 @@ class IMUGyro(private val imu: BNO055IMU) : Gyro {
     fun isInitialized() = imu.isGyroCalibrated
 
     override val currentAngle: Double
-        get() = -imu.getAngularOrientation(
-            AxesReference.INTRINSIC,
-            AxesOrder.ZYX,
-            AngleUnit.RADIANS
-        ).firstAngle.toDouble()
+        get() = imu.angularOrientation.firstAngle.toDouble()
 }

@@ -22,11 +22,13 @@ repositories {
 }
 
 dependencies {
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
+
     //todo: Make not local.
     implementation "org.futurerobotics.jargon:all:0.1.0-SNAPSHOT"
     implementation "org.futurerobotics.jargon:ftc-bridge:0.1.0-SNAPSHOT"
+    implementation project(":bluejay")
 
-    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
 
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.5.2'
     testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.5.2'
@@ -36,7 +38,7 @@ android {
     kotlinOptions {
         jvmTarget = "1.8"
 
-        freeCompilerArgs = ["-Xuse-experimental=kotlin.Experimental"]
+        freeCompilerArgs = ["-Xuse-experimental=kotlin.Experimental", "-Xjvm-default=enable"]
     }
     testOptions {
         unitTests.all {

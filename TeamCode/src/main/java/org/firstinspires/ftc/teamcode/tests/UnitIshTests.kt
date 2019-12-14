@@ -1,23 +1,25 @@
 package org.firstinspires.ftc.teamcode.tests
 
+import com.qualcomm.robotcore.eventloop.opmode.Disabled
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp
 import com.qualcomm.robotcore.hardware.DcMotor
 import com.qualcomm.robotcore.hardware.DcMotorEx
 import com.qualcomm.robotcore.hardware.DcMotorSimple
 import com.qualcomm.robotcore.hardware.Servo
 import org.firstinspires.ftc.teamcode.lib.bot.Hardware
-import org.firstinspires.ftc.teamcode.lib.getScope
+import org.firstinspires.ftc.teamcode.lib.recoverScope
 import org.firstinspires.ftc.teamcode.lib.system.BotSystems
-import org.firstinspires.ftc.teamcode.lib.system.RobotSystem
+import org.firstinspires.ftc.teamcode.lib.system.RobotSystemImpl
 import org.futurerobotics.jargon.ftcbridge.CoroutineOpMode
 import org.futurerobotics.jargon.math.convert.*
 import org.futurerobotics.jargon.running.syncedLoop
 import java.util.*
 
 @TeleOp
+@Disabled
 class SingleServoTest : CoroutineOpMode() {
 
-    private val name = "Grabber"
+    private val name = "Flicker"
 
     override suspend fun runOpMode() {
         val servo = hardwareMap.get(Servo::class.java, name)
@@ -38,6 +40,7 @@ class SingleServoTest : CoroutineOpMode() {
 }
 
 @TeleOp
+@Disabled
 class SingleMotorTest : CoroutineOpMode() {
 
     private val name = "LiftLeft"
@@ -63,6 +66,7 @@ class SingleMotorTest : CoroutineOpMode() {
 }
 
 @TeleOp
+@Disabled
 class ArmServosTest : CoroutineOpMode() {
 
     override suspend fun runOpMode() {
@@ -83,21 +87,22 @@ class ArmServosTest : CoroutineOpMode() {
 }
 
 @TeleOp
+@Disabled
 class LiftTest : CoroutineOpMode() {
 
-    private lateinit var system: RobotSystem
+    private lateinit var system: RobotSystemImpl
 
     override suspend fun runOpMode() {
-        system = RobotSystem(this, EnumSet.of(BotSystems.Lift))
+        system = RobotSystemImpl(this, EnumSet.of(BotSystems.Lift))
         val lift = system.lift
         val motors = system.hardware.liftMotors.requireNoNulls()
         waitForStart()
         motors.forEach {
             it.resetPosition()
         }
-        system.start(getScope())
+        system.start(recoverScope())
         var position = 0.0
-        system.iReallyWantTheTicker().listener().syncedLoop {
+        system.ticker.listener().syncedLoop {
 
             val stick = -gamepad1.left_stick_y.toDouble()
             position = (position + stick * 0.05).coerceIn(0.0, 2.0)

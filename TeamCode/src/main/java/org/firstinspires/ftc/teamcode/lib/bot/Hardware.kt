@@ -33,8 +33,8 @@ class Hardware(map: HardwareMap) {
         }
         //0 deg is up, 90 deg is out, negatives is in.
         private val armConfigs = listOf(
-            RangeServoConfig("ArmLeft", 0.49..0.14, 0.0..90 * deg),
-            RangeServoConfig("ArmRight", 0.48..0.82, 0.0..90 * deg)
+            RangeServoConfig("ArmLeft", 0.46..0.11, 0.0..90 * deg),
+            RangeServoConfig("ArmRight", 0.49..0.84, 0.0..90 * deg)
         )
 
         private val liftConfigs = kotlin.run {
@@ -54,26 +54,23 @@ class Hardware(map: HardwareMap) {
         private const val flickerName = "Flicker"
     }
 
-    //hubs
-    val hubs: List<ExpansionHubEx> = map.getAll(ExpansionHubEx::class.java)
-    //gyro
+    constructor(opMode: OpMode) : this(opMode.hardwareMap)
+
+    val hubs = map.getAll(ExpansionHubEx::class.java)
     val imu = map.tryGet(BNO055IMU::class.java, imuName)
-    //wheels
     val wheelMotors = wheelConfigs.getFrom(map)
-    //arm
     val armServos = armConfigs.getFrom(map)
-    //lift
     val liftMotors = liftConfigs.getFrom(map)
-    //claw
     val clawServo = map.tryGet(LibServo::class.java, clawName)
-    //intake
     val intakeMotors = intakeNames.map { map.tryGet(DcMotor::class.java, it) }
-    //grabber
     val grabberServo = map.tryGet(LibServo::class.java, grabberName)
-    //flicker
     val flickerServo = map.tryGet(LibServo::class.java, flickerName)
 
-    constructor(opMode: OpMode) : this(opMode.hardwareMap)
+    fun enableCharging() {
+        hubs.forEach {
+            it.isPhoneChargeEnabled = true
+        }
+    }
 }
 
 data class MotorConfig(

@@ -6,8 +6,10 @@ import kotlinx.coroutines.channels.ConflatedBroadcastChannel
 import kotlinx.coroutines.channels.ReceiveChannel
 import org.firstinspires.ftc.teamcode.lib.SYSTEM_PERIOD
 import org.firstinspires.ftc.teamcode.lib.TickerSystem
+import org.firstinspires.ftc.teamcode.lib.blueyay.ImageTracker
+import org.firstinspires.ftc.teamcode.lib.blueyay.SkystoneDetector
 import org.firstinspires.ftc.teamcode.lib.bot.*
-import org.futurerobotics.jargon.blocks.control.GyroBlock
+import org.futurerobotics.bluejay.original.detectors.ImageDetector
 import org.futurerobotics.jargon.ftcbridge.BulkMotorBlock
 import org.futurerobotics.jargon.ftcbridge.MotorBulkData
 import org.futurerobotics.jargon.ftcbridge.MultipleBulkData
@@ -24,50 +26,59 @@ import java.util.*
  *
  * They can also depend on other systems.
  *
- * @see RobotSystem
+ * @see RobotSystemImpl
  */
 @Suppress("SelfReferenceConstructorParameter")
 enum class BotSystems(vararg val dependsOn: BotSystems) {
 
     /** [IMUGyro]*/
     Gyro,
-    /** [launchBulkDataBroadcaster] */
+    /** [BulkDataBroadcaster] */
     BulkDataBroadcast,
-    /** [Drive] */
-    Drive(BulkDataBroadcast, Gyro),
+    /** [AutoDrive] */
+    AutoDrive(BulkDataBroadcast, Gyro),
     /** [ManualDrive] */
     ManualDrive(BulkDataBroadcast, Gyro),
     /** [Lift] */
     Lift(BulkDataBroadcast),
-    /** [runManualArms] */
-    ManualArm(Lift),
+    /** [ImageTracker] */
+    ImageTracker,
+    SkystoneDetector,
     TeleOp1(ManualDrive),
-    TeleOp2(ManualArm),
-    AllTeleOp(TeleOp1, TeleOp2)
+    TeleOp2(Lift),
+    AllTeleOp(TeleOp1, TeleOp2),
+    Auto(SkystoneDetector, AutoDrive)
 }
 
 /**
- * Interface for [RobotSystem] so we can later use kotlin interface delegates.
+ * Interface for [RobotSystemImpl] so we can later use kotlin interface delegates.
  */
 @UseExperimental(ExperimentalCoroutinesApi::class)
-interface IRobotSystem {
+interface RobotSystem {
+
+    val ticker: Ticker
 
     val opMode: OpMode
     val hardware: Hardware
 
     val bulkDataBroadcast: ConflatedBroadcastChannel<MotorBulkData>
 
+    val imageTracker: ImageTracker
+    val skystoneDetector: SkystoneDetector
+
     val gyro: Gyro
     val autoDrive: AutoDrive
     val manualDrive: ManualDrive
 
-    val intake: SetPower
+    val intake: SimpleSetPower
     val claw: ServoDoor
     val arm: Arm
     val lift: Lift
 
     val flicker: ServoDoor
     val grabber: ServoDoor
+
+    val autoArm: AutoArmRunner
 }
 
 /**
@@ -80,11 +91,11 @@ interface IRobotSystem {
  * Only works on Future14473's bot. Sorry.
  */
 @UseExperimental(ExperimentalCoroutinesApi::class) //for broadcast channel
-class RobotSystem
+class RobotSystemImpl
 private constructor(
     systems: EnumSet<BotSystems>,
     override val opMode: OpMode
-) : IRobotSystem {
+) : RobotSystem {
 
     constructor(opMode: OpMode, systems: EnumSet<BotSystems>) : this(
         EnumSet.noneOf(BotSystems::class.java).apply {
@@ -108,9 +119,7 @@ private constructor(
     override val hardware = Hardware(opMode)
 
 
-    private val ticker = FrequencyRegulatedTicker(MaxSpeedRegulator(SYSTEM_PERIOD))
-
-    fun iReallyWantTheTicker(): Ticker = ticker
+    override val ticker = FrequencyRegulatedTicker(MaxSpeedRegulator(SYSTEM_PERIOD))
 
 
     private var _bulkDataBroadcast = if (BotSystems.BulkDataBroadcast !in systems) null
@@ -118,20 +127,30 @@ private constructor(
     override val bulkDataBroadcast: ConflatedBroadcastChannel<MotorBulkData>
         get() = _bulkDataBroadcast?.channel ?: error("BulkDataBroadcast not in list of running systems.")
 
+    //currently not used
+    private val _imageTracker = if (BotSystems.ImageTracker !in systems) null else
+        ImageTracker(opMode).also { tickerSystems += it }
+    override val imageTracker: ImageTracker
+        get() = _imageTracker ?: error("Image detection not in list of running systems.")
+
+    private val _skystoneDetector = if (BotSystems.SkystoneDetector !in systems) null else
+        SkystoneDetector(ImageDetector(opMode, true)).also { tickerSystems += it }
+    override val skystoneDetector: SkystoneDetector
+        get() = _skystoneDetector ?: error("Skystone detector not in list of running systems.")
 
     private val _gyro = if (BotSystems.Gyro !in systems) null else hardware.imu?.let {
         IMUGyro(it).apply { initialize() }
     } ?: error("IMU not in hardware map.")
-    override val gyro: Gyro
+    override val gyro: IMUGyro
         get() = _gyro ?: error("Gyro not in list of running systems.")
 
 
-    private val _autoDrive: AutoDrive? = if (BotSystems.Drive !in systems) null else {
+    private val _autoDrive: AutoDrive? = if (BotSystems.AutoDrive !in systems) null else {
         val channel = bulkDataBroadcast.openSubscription()
         val motors = BulkMotorBlock(hardware.wheelMotors.requireNoNulls()) {
             channel.receiveBlocking()
         }
-        AutoDrive(motors, GyroBlock(gyro)).also { tickerSystems += it }
+        AutoDrive(motors, gyro).also { tickerSystems += it }
     }
     override val autoDrive get() = _autoDrive ?: error("Drive not in list of running systems.")
 
@@ -142,12 +161,12 @@ private constructor(
         val motors = BulkMotorBlock(hardware.wheelMotors.requireNoNulls()) {
             channel.receiveBlocking()
         }
-        ManualDrive(motors, GyroBlock(gyro), opMode.gamepad1).also { tickerSystems += it }
+        ManualDrive(motors).also { tickerSystems += it }
     }
     override val manualDrive: ManualDrive get() = _manualDrive ?: error("Manual Drive not in list of running systems.")
 
 
-    private val _intake = if (null in hardware.intakeMotors) null else object : SetPower {
+    private val _intake = if (null in hardware.intakeMotors) null else object : SimpleSetPower {
         private val motors = hardware.intakeMotors.requireNoNulls()
         override var power: Double = 0.0
             set(value) {
@@ -157,7 +176,7 @@ private constructor(
                 field = value
             }
     }
-    override val intake: SetPower
+    override val intake: SimpleSetPower
         get() = _intake ?: error("Intake motors not in hardware map.")
 
 
@@ -184,6 +203,11 @@ private constructor(
 
     private val _grabber = hardware.grabberServo?.let { ServoDoor(it, GRABBER_RANGE, true) }
     override val grabber: ServoDoor get() = _grabber ?: error("Grabber not in hardware map.")
+
+    private val _autoArm = if(BotSystems.Auto !in systems) null else
+        AutoArmRunner(this).also { tickerSystems += it }
+    override val autoArm: AutoArmRunner
+        get() = _autoArm ?: error("Auto arm not in list of running systems.")
 
     init {
         if (BotSystems.TeleOp1 in systems) tickerSystems += TeleOp1(this)
@@ -212,6 +236,7 @@ class BulkDataBroadcaster(
 
     override fun launchSystem(scope: CoroutineScope, ticker: Ticker) {
         scope.launch(Dispatchers.IO) {
+            //            RobotLog.v("hubs: $hubs")
             try {
                 ticker.listener().syncedLoop {
                     val data = MultipleBulkData(hubs.map { it.bulkInputData })

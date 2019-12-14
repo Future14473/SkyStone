@@ -7,7 +7,7 @@ import org.futurerobotics.jargon.math.convert.*
 /**
  * @see [ArmState]
  *
- * Basically has a [position] which can be set. Thats it.
+ * Basically has a [position] which can be set.
  */
 class Arm(private val servos: List<FtcServo>) : BoundedPosition {
 
@@ -19,7 +19,7 @@ class Arm(private val servos: List<FtcServo>) : BoundedPosition {
     override val bounds: ClosedFloatingPointRange<Double> = range
 
     override var position: Double
-        get() = servos.sumByDouble { it.position } / 2
+        get() = servos.sumByDouble { it.position } / servos.size
         set(value) {
             val pos = value.coerceIn(bounds)
             servos.forEach {
