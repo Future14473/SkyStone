@@ -1,9 +1,6 @@
 package org.firstinspires.ftc.teamcode.lib.bot
 
 import com.qualcomm.hardware.bosch.BNO055IMU
-import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit
-import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder
-import org.firstinspires.ftc.robotcore.external.navigation.AxesReference
 import org.futurerobotics.jargon.hardware.Gyro
 
 /**
@@ -28,11 +25,8 @@ class IMUGyro(private val imu: BNO055IMU) : Gyro {
     }
 
     fun isInitialized() = imu.isGyroCalibrated
-
-    override val currentAngle: Double
-        get() = -imu.getAngularOrientation(
-            AxesReference.INTRINSIC,
-            AxesOrder.ZYX,
-            AngleUnit.RADIANS
-        ).firstAngle.toDouble()
+    override val angle: Double
+        get() = -imu.angularOrientation.firstAngle.toDouble()
+    override val angularVelocity: Double
+        get() = -imu.angularVelocity.zRotationRate.toDouble()
 }

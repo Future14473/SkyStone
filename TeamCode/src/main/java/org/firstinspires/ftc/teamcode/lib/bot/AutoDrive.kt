@@ -13,9 +13,8 @@ import org.futurerobotics.jargon.linalg.*
 import org.futurerobotics.jargon.math.MotionOnly
 import org.futurerobotics.jargon.math.MotionState
 import org.futurerobotics.jargon.math.Pose2d
-import org.futurerobotics.jargon.math.ValueMotionState
 import org.futurerobotics.jargon.math.convert.*
-import org.futurerobotics.jargon.mechanics.NominalDriveModel
+import org.futurerobotics.jargon.mechanics.FixedWheelDriveModel
 import org.futurerobotics.jargon.pathing.trajectory.Trajectory
 import org.futurerobotics.jargon.running.SuspendLoopSystemRunner
 import org.futurerobotics.jargon.running.Ticker
@@ -37,9 +36,7 @@ class AutoDrive(motors: MotorsBlock, gyro: GyroBlock) : TickerSystem {
     val trajectories = ExternalQueue<Trajectory>()
     private val system = buildBlockSystem {
         val follower =
-            TimeOnlyMotionProfileFollower<MotionState<Pose2d>>(
-                ValueMotionState.ofAll(Pose2d.ZERO)
-            ).apply {
+            TimeOnlyMotionProfileFollower(MotionState.ofAll(Pose2d.ZERO)).apply {
                 profileInput from trajectories.output
             }
         val positionController = HolonomicPidBotPoseController(
@@ -75,7 +72,7 @@ class AutoDrive(motors: MotorsBlock, gyro: GyroBlock) : TickerSystem {
 }
 
 fun botVelocityStateSpaceSystem(
-    driveModel: NominalDriveModel,
+    driveModel: FixedWheelDriveModel,
     period: Double
 ): StateSpaceRunner {
     val continuousMatrices = DriveStateSpaceModels.poseVelocityController(driveModel, driveModel)
@@ -145,25 +142,25 @@ fun botVelocityStateSpaceSystem(
 }
 
 class VelocityController(builder: BlockArrangementBuilder, period: Double) {
-    val motionReference: Block.Input<MotionOnly<Pose2d>>
-    val voltageSignal: Block.Output<Vec>
-    val velocityMeasurement: Block.Input<Vec>
+    val motionReference: Block.Input<MotionOnly<Pose2d>> = TODO()
+    val voltageSignal: Block.Output<Vec> = TODO()
+    val velocityMeasurement: Block.Input<Vec> = TODO()
 
     init {
         with(builder) {
             val toState = BotMotionToVecVelState()
             motionReference = toState.input
             val velState = toState.output
-            StateSpaceRunnerBlock(
-                botVelocityStateSpaceSystem(
-                    driveModel,
-                    period
-                ), zeroVec(3)
-            ).also {
-                it.referenceMotionState from velState
-                this@VelocityController.voltageSignal = it.signal
-                velocityMeasurement = it.measurement
-            }
+//            StateSpaceRunnerBlock(
+//                botVelocityStateSpaceSystem(
+//                    driveModel,
+//                    period
+//                ), zeroVec(3)
+//            ).also {
+//                it.referenceMotionState from velState
+//                this@VelocityController.voltageSignal = it.signal
+//                velocityMeasurement = it.measurement
+//            }
         }
     }
 }

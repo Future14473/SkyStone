@@ -10,8 +10,8 @@ import org.futurerobotics.jargon.blocks.control.EncoderAndStrictGyroLocalizer
 import org.futurerobotics.jargon.blocks.control.GyroBlock
 import org.futurerobotics.jargon.blocks.control.MotorsBlock
 import org.futurerobotics.jargon.blocks.functional.ExternalValue
+import org.futurerobotics.jargon.math.MotionOnly
 import org.futurerobotics.jargon.math.Pose2d
-import org.futurerobotics.jargon.math.ValueMotionOnly
 import org.futurerobotics.jargon.running.SuspendLoopSystemRunner
 import org.futurerobotics.jargon.running.Ticker
 import org.futurerobotics.jargon.running.asFrequencyRegulator
@@ -26,7 +26,7 @@ class ManualDrive(motors: MotorsBlock, gyro: GyroBlock, private val gamepad: Gam
 
     private val system = buildBlockSystem {
         VelocityController(this, SYSTEM_PERIOD).apply {
-            motionReference from targetVelocity.output.pipe { ValueMotionOnly(it, Pose2d.ZERO) }
+            motionReference from targetVelocity.output.pipe { MotionOnly(it, Pose2d.ZERO) }
             voltageSignal into motors.motorVolts
             velocityMeasurement from motors.motorVelocities
         }

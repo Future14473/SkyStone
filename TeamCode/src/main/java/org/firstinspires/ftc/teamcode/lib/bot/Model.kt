@@ -1,8 +1,8 @@
 package org.firstinspires.ftc.teamcode.lib.bot
 
 import org.futurerobotics.jargon.math.convert.*
+import org.futurerobotics.jargon.mechanics.FixedWheelDriveModel
 import org.futurerobotics.jargon.mechanics.MotorModel
-import org.futurerobotics.jargon.mechanics.NominalDriveModel
 import org.futurerobotics.jargon.mechanics.TransmissionModel
 import kotlin.math.pow
 import kotlin.math.sqrt
@@ -20,7 +20,7 @@ val wheelMotorModel = MotorModel.fromMotorData(
 val wheelTransmission = TransmissionModel.fromTorqueMultiplier(wheelMotorModel, 2.0, 0.0, 0.9)
 const val botMass = 33.4 * lbs
 val moi = botMass / 3 * (16 * `in`).pow(2) //todo: find out empirically
-val driveModel = NominalDriveModel.mecanumLike(
+val driveModel = FixedWheelDriveModel.mecanumLike(
     botMass,
     moi,
     wheelTransmission,
