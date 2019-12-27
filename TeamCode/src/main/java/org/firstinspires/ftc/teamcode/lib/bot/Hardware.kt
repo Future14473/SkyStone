@@ -38,9 +38,9 @@ class Hardware(map: HardwareMap) {
         )
 
         private val liftConfigs = kotlin.run {
-            val tpr = -537.6
+            val tpr = 537.6
             listOf(
-                MotorConfig("LiftLeft", Direction.REVERSE, tpr),
+                MotorConfig("LiftLeft", Direction.REVERSE, -tpr),
                 MotorConfig("LiftRight", Direction.FORWARD, tpr)
             )
         }
@@ -57,6 +57,13 @@ class Hardware(map: HardwareMap) {
     constructor(opMode: OpMode) : this(opMode.hardwareMap)
 
     val hubs = map.getAll(ExpansionHubEx::class.java)
+
+    init {
+        if (hubs.size != 2) {
+            error("CANNOT FIND THE HUBS.")
+        }
+    }
+
     val imu = map.tryGet(BNO055IMU::class.java, imuName)
     val wheelMotors = wheelConfigs.getFrom(map)
     val armServos = armConfigs.getFrom(map)

@@ -41,12 +41,12 @@ public class OpenCvDetector {
 	
 	//for future interface
 	public void start() {
-		vuforia.start();
+//		vuforia.start();
 		activated = true;
 	}
 	
 	public void stop() {
-		vuforia.stop();
+//		vuforia.stop();
 		activated = false;
 	}
 	

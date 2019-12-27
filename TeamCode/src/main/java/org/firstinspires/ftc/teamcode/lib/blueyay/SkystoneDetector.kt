@@ -23,7 +23,7 @@ class SkystoneDetector(imageDetector: ImageDetector) : TickerSystem {
 
     init {
         Pipeline.doFoundations = false
-        Pipeline.doStones = true
+        Pipeline.doStones = false
         Pipeline.doSkyStones = true
     }
 

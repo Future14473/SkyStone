@@ -15,10 +15,18 @@ abstract class BotSystemsOpMode(private vararg val systems: BotSystems) : Corout
         private set
 
     final override suspend fun runOpMode() = coroutineScope {
+        telemetry.run {
+            addLine("INITING --- DO NOT PRESS START")
+            update()
+        }
         val system = RobotSystemImpl(this@BotSystemsOpMode, *systems)
         this@BotSystemsOpMode.system = system
         system.hardware.enableCharging()
         system.onInit()
+        telemetry.run {
+            addLine("Init is done")
+            update()
+        }
         waitForStart()
         system.start(this)
         system.onStart()

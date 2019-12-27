@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode.lib.system
 
+import kotlinx.coroutines.delay
 import org.futurerobotics.jargon.math.convert.*
 import org.futurerobotics.jargon.math.distTo
 
@@ -19,6 +20,7 @@ enum class AutoArmState {
         override suspend fun AutoArmRunner.run(): AutoArmState {
             moveArmToAndWait(ARM_GRAB)
             claw.close()
+            pause(200)
             return stateChannel.receive()
         }
     },
@@ -30,7 +32,8 @@ enum class AutoArmState {
     },
     Drop {
         override suspend fun AutoArmRunner.run(): AutoArmState {
-            moveArmToAndWait(ARM_FORWARD + 20 * deg)
+            moveArmToAndWait(ARM_FORWARD + 10 * deg)
+            pause(400)
             claw.open()
             return Ready
         }

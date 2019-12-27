@@ -15,6 +15,18 @@ import java.util.List;
 @Deprecated
 public class DescriptorExtractor {
 
+    protected final long nativeObj;
+    protected DescriptorExtractor(long addr) { nativeObj = addr; }
+
+    public long getNativeObjAddr() { return nativeObj; }
+
+    // internal usage only
+    public static DescriptorExtractor __fromPtr__(long addr) { return new DescriptorExtractor(addr); }
+
+    private static final int
+            OPPONENTEXTRACTOR = 1000;
+
+
     public static final int
             SIFT = 1,
             SURF = 2,
@@ -30,11 +42,11 @@ public class DescriptorExtractor {
             OPPONENT_BRISK = OPPONENTEXTRACTOR + BRISK,
             OPPONENT_FREAK = OPPONENTEXTRACTOR + FREAK,
             OPPONENT_AKAZE = OPPONENTEXTRACTOR + AKAZE;
-    private static final int
-            OPPONENTEXTRACTOR = 1000;
-    protected final long nativeObj;
 
-    protected DescriptorExtractor(long addr) { nativeObj = addr; }
+
+    //
+    // C++: static Ptr_javaDescriptorExtractor cv::javaDescriptorExtractor::create(int extractorType)
+    //
 
     //javadoc: javaDescriptorExtractor::create(extractorType)
     public static DescriptorExtractor create(int extractorType)
@@ -45,27 +57,9 @@ public class DescriptorExtractor {
         return retVal;
     }
 
-    // internal usage only
-    public static DescriptorExtractor __fromPtr__(long addr) { return new DescriptorExtractor(addr); }
-
-
-    //
-    // C++: static Ptr_javaDescriptorExtractor cv::javaDescriptorExtractor::create(int extractorType)
-    //
-
-    // C++: static Ptr_javaDescriptorExtractor cv::javaDescriptorExtractor::create(int extractorType)
-    private static native long create_0(int extractorType);
-
 
     //
     // C++:  bool cv::javaDescriptorExtractor::empty()
-    //
-
-    public long getNativeObjAddr() { return nativeObj; }
-
-
-    //
-    // C++:  int cv::javaDescriptorExtractor::descriptorSize()
     //
 
     //javadoc: javaDescriptorExtractor::empty()
@@ -79,15 +73,7 @@ public class DescriptorExtractor {
 
 
     //
-    // C++:  int cv::javaDescriptorExtractor::descriptorType()
-    //
-
-    // C++:  bool cv::javaDescriptorExtractor::empty()
-    private static native boolean empty_0(long nativeObj);
-
-
-    //
-    // C++:  void cv::javaDescriptorExtractor::compute(Mat image, vector_KeyPoint& keypoints, Mat descriptors)
+    // C++:  int cv::javaDescriptorExtractor::descriptorSize()
     //
 
     //javadoc: javaDescriptorExtractor::descriptorSize()
@@ -101,15 +87,7 @@ public class DescriptorExtractor {
 
 
     //
-    // C++:  void cv::javaDescriptorExtractor::compute(vector_Mat images, vector_vector_KeyPoint& keypoints, vector_Mat& descriptors)
-    //
-
-    // C++:  int cv::javaDescriptorExtractor::descriptorSize()
-    private static native int descriptorSize_0(long nativeObj);
-
-
-    //
-    // C++:  void cv::javaDescriptorExtractor::read(String fileName)
+    // C++:  int cv::javaDescriptorExtractor::descriptorType()
     //
 
     //javadoc: javaDescriptorExtractor::descriptorType()
@@ -123,11 +101,8 @@ public class DescriptorExtractor {
 
 
     //
-    // C++:  void cv::javaDescriptorExtractor::write(String fileName)
+    // C++:  void cv::javaDescriptorExtractor::compute(Mat image, vector_KeyPoint& keypoints, Mat descriptors)
     //
-
-    // C++:  int cv::javaDescriptorExtractor::descriptorType()
-    private static native int descriptorType_0(long nativeObj);
 
     //javadoc: javaDescriptorExtractor::compute(image, keypoints, descriptors)
     public  void compute(Mat image, MatOfKeyPoint keypoints, Mat descriptors)
@@ -138,8 +113,10 @@ public class DescriptorExtractor {
         return;
     }
 
-    // C++:  void cv::javaDescriptorExtractor::compute(Mat image, vector_KeyPoint& keypoints, Mat descriptors)
-    private static native void compute_0(long nativeObj, long image_nativeObj, long keypoints_mat_nativeObj, long descriptors_nativeObj);
+
+    //
+    // C++:  void cv::javaDescriptorExtractor::compute(vector_Mat images, vector_vector_KeyPoint& keypoints, vector_Mat& descriptors)
+    //
 
     //javadoc: javaDescriptorExtractor::compute(images, keypoints, descriptors)
     public  void compute(List<Mat> images, List<MatOfKeyPoint> keypoints, List<Mat> descriptors)
@@ -156,8 +133,10 @@ public class DescriptorExtractor {
         return;
     }
 
-    // C++:  void cv::javaDescriptorExtractor::compute(vector_Mat images, vector_vector_KeyPoint& keypoints, vector_Mat& descriptors)
-    private static native void compute_1(long nativeObj, long images_mat_nativeObj, long keypoints_mat_nativeObj, long descriptors_mat_nativeObj);
+
+    //
+    // C++:  void cv::javaDescriptorExtractor::read(String fileName)
+    //
 
     //javadoc: javaDescriptorExtractor::read(fileName)
     public  void read(String fileName)
@@ -168,8 +147,10 @@ public class DescriptorExtractor {
         return;
     }
 
-    // C++:  void cv::javaDescriptorExtractor::read(String fileName)
-    private static native void read_0(long nativeObj, String fileName);
+
+    //
+    // C++:  void cv::javaDescriptorExtractor::write(String fileName)
+    //
 
     //javadoc: javaDescriptorExtractor::write(fileName)
     public  void write(String fileName)
@@ -180,13 +161,37 @@ public class DescriptorExtractor {
         return;
     }
 
-    // C++:  void cv::javaDescriptorExtractor::write(String fileName)
-    private static native void write_0(long nativeObj, String fileName);
 
     @Override
     protected void finalize() throws Throwable {
         delete(nativeObj);
     }
+
+
+
+    // C++: static Ptr_javaDescriptorExtractor cv::javaDescriptorExtractor::create(int extractorType)
+    private static native long create_0(int extractorType);
+
+    // C++:  bool cv::javaDescriptorExtractor::empty()
+    private static native boolean empty_0(long nativeObj);
+
+    // C++:  int cv::javaDescriptorExtractor::descriptorSize()
+    private static native int descriptorSize_0(long nativeObj);
+
+    // C++:  int cv::javaDescriptorExtractor::descriptorType()
+    private static native int descriptorType_0(long nativeObj);
+
+    // C++:  void cv::javaDescriptorExtractor::compute(Mat image, vector_KeyPoint& keypoints, Mat descriptors)
+    private static native void compute_0(long nativeObj, long image_nativeObj, long keypoints_mat_nativeObj, long descriptors_nativeObj);
+
+    // C++:  void cv::javaDescriptorExtractor::compute(vector_Mat images, vector_vector_KeyPoint& keypoints, vector_Mat& descriptors)
+    private static native void compute_1(long nativeObj, long images_mat_nativeObj, long keypoints_mat_nativeObj, long descriptors_mat_nativeObj);
+
+    // C++:  void cv::javaDescriptorExtractor::read(String fileName)
+    private static native void read_0(long nativeObj, String fileName);
+
+    // C++:  void cv::javaDescriptorExtractor::write(String fileName)
+    private static native void write_0(long nativeObj, String fileName);
 
     // native support for java finalize()
     private static native void delete(long nativeObj);

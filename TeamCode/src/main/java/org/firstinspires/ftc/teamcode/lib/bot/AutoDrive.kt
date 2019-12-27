@@ -43,21 +43,11 @@ class AutoDrive(motors: MotorsBlock, gyro: Gyro) : TickerSystem {
         val hCoeff = PidCoefficients(2.0, 0.02, 0.1)
     }
 
-
-    @Volatile
-    private var flipReference = false
-
     /**
-     * Sets the side. If set to blue, references will have all y values flipped (map to other side of field).
+     * Flipped = red side
      */
-    fun setSide(side: Side) {
-        flipReference = side.isFlipped
-    }
+    var isFlipped = false
 
-    enum class Side(internal val isFlipped: Boolean) {
-        Red(true),
-        Blue(false)
-    }
 
     val trajectories = ExternalQueue<TrajectoryWithCallbacks>()
     val currentPosition = Monitor<Pose2d>()
@@ -76,7 +66,7 @@ class AutoDrive(motors: MotorsBlock, gyro: Gyro) : TickerSystem {
             ).apply {
                 profileInput from trajectories.output
             }.output.pipe { ref ->
-                ref.replaceIf(flipReference) {
+                ref.replaceIf(isFlipped) {
                     ValueMotionState(
                         it.value.flipPose(),
                         it.deriv.flipPose(),

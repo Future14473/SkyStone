@@ -4,11 +4,11 @@ import com.qualcomm.robotcore.eventloop.opmode.Disabled
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp
 import com.qualcomm.robotcore.hardware.DcMotor
 import com.qualcomm.robotcore.hardware.DcMotorEx
-import com.qualcomm.robotcore.hardware.DcMotorSimple
 import com.qualcomm.robotcore.hardware.Servo
+import kotlinx.coroutines.coroutineScope
 import org.firstinspires.ftc.teamcode.lib.bot.Hardware
-import org.firstinspires.ftc.teamcode.lib.recoverScope
 import org.firstinspires.ftc.teamcode.lib.system.BotSystems
+import org.firstinspires.ftc.teamcode.lib.system.Buttons
 import org.firstinspires.ftc.teamcode.lib.system.RobotSystemImpl
 import org.futurerobotics.jargon.ftcbridge.CoroutineOpMode
 import org.futurerobotics.jargon.math.convert.*
@@ -16,10 +16,10 @@ import org.futurerobotics.jargon.running.syncedLoop
 import java.util.*
 
 @TeleOp
-@Disabled
+//@Disabled
 class SingleServoTest : CoroutineOpMode() {
 
-    private val name = "Flicker"
+    private val name = "ArmLeft"
 
     override suspend fun runOpMode() {
         val servo = hardwareMap.get(Servo::class.java, name)
@@ -40,25 +40,42 @@ class SingleServoTest : CoroutineOpMode() {
 }
 
 @TeleOp
-@Disabled
 class SingleMotorTest : CoroutineOpMode() {
 
-    private val name = "LiftLeft"
-    private val direction = DcMotorSimple.Direction.FORWARD
 
     override suspend fun runOpMode() {
-        val motor = hardwareMap.get(DcMotorEx::class.java, name)
-        motor.mode = DcMotor.RunMode.RUN_WITHOUT_ENCODER
-        motor.direction = direction
+        val allMotors = hardwareMap.getAll(DcMotorEx::class.java)
+        val buttons = Buttons(gamepad1)
+        var index = 0
         waitForStart()
+        var motor = allMotors[index]
+        motor.mode = DcMotor.RunMode.RUN_WITHOUT_ENCODER
+        motor.power = 0.0
+        fun resetMotor() {
+            motor.power = 0.0
+            motor = allMotors[index]
+            motor.mode = DcMotor.RunMode.RUN_WITHOUT_ENCODER
+            motor.power = 0.0
+        }
         while (opModeIsActive()) {
+            buttons.update()
+            if (buttons.a.isClicked) {
+                index = (index + 1) % allMotors.size
+                resetMotor()
+            }
+            if (buttons.b.isClicked) {
+                index = (index + allMotors.size - 1) % allMotors.size
+                resetMotor()
+            }
+
             if (gamepad1.x) {
                 motor.mode = DcMotor.RunMode.STOP_AND_RESET_ENCODER
                 motor.mode = DcMotor.RunMode.RUN_WITHOUT_ENCODER
             }
-            val stick = gamepad1.left_stick_y.toDouble()
+            val stick = -gamepad1.left_stick_y.toDouble()
             motor.power = stick
-            telemetry.addLine("name:     $name")
+            telemetry.addLine("name:     ${hardwareMap.getNamesOf(motor).joinToString()}")
+            telemetry.addLine("stick:    $stick")
             telemetry.addLine("position: ${motor.currentPosition}")
             telemetry.update()
         }
@@ -66,7 +83,7 @@ class SingleMotorTest : CoroutineOpMode() {
 }
 
 @TeleOp
-@Disabled
+//@Disabled
 class ArmServosTest : CoroutineOpMode() {
 
     override suspend fun runOpMode() {
@@ -87,20 +104,19 @@ class ArmServosTest : CoroutineOpMode() {
 }
 
 @TeleOp
-@Disabled
 class LiftTest : CoroutineOpMode() {
 
     private lateinit var system: RobotSystemImpl
 
-    override suspend fun runOpMode() {
-        system = RobotSystemImpl(this, EnumSet.of(BotSystems.Lift))
+    override suspend fun runOpMode() = coroutineScope {
+        system = RobotSystemImpl(this@LiftTest, EnumSet.of(BotSystems.Lift))
         val lift = system.lift
         val motors = system.hardware.liftMotors.requireNoNulls()
         waitForStart()
         motors.forEach {
             it.resetPosition()
         }
-        system.start(recoverScope())
+        system.start(this)
         var position = 0.0
         system.ticker.listener().syncedLoop {
 
@@ -109,8 +125,12 @@ class LiftTest : CoroutineOpMode() {
             lift.targetHeight.position = position
             telemetry.addLine("target: $position")
             telemetry.addLine("stick: $stick")
+            telemetry.addLine("actual: ${system.lift.actualHeight}")
             motors.forEachIndexed { i, it ->
-                telemetry.addLine("$i: ${it.position}")
+                telemetry.addLine("height $i: ${it.position}")
+            }
+            motors.forEachIndexed { i, it ->
+                telemetry.addLine("encoder $i: ${it.motor.currentPosition}")
             }
             telemetry.update()
 

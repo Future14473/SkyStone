@@ -47,7 +47,7 @@ enum class BotSystems(vararg val dependsOn: BotSystems) {
     TeleOp1(ManualDrive),
     TeleOp2(Lift),
     AllTeleOp(TeleOp1, TeleOp2),
-    Auto(SkystoneDetector, AutoDrive)
+    Auto(SkystoneDetector, AutoDrive, Lift)
 }
 
 /**
