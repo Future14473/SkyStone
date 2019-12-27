@@ -1,121 +1,68 @@
 package org.firstinspires.ftc.teamcode.lib.bot
 
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
+import org.firstinspires.ftc.teamcode.lib.SYSTEM_PERIOD
 import org.firstinspires.ftc.teamcode.lib.TickerSystem
-import org.firstinspires.ftc.teamcode.lib.bot.DriveModel.driveModel
-import org.firstinspires.ftc.teamcode.lib.field.genParams
-import org.firstinspires.ftc.teamcode.lib.field.motionConstraints
-import org.firstinspires.ftc.teamcode.lib.system.BoundedLocalizer
 import org.futurerobotics.jargon.blocks.Block
 import org.futurerobotics.jargon.blocks.BlockArrangementBuilder
 import org.futurerobotics.jargon.blocks.buildBlockSystem
 import org.futurerobotics.jargon.blocks.control.*
 import org.futurerobotics.jargon.blocks.functional.ExternalQueue
-import org.futurerobotics.jargon.blocks.functional.Monitor
-import org.futurerobotics.jargon.hardware.Gyro
-import org.futurerobotics.jargon.linalg.Vec
-import org.futurerobotics.jargon.linalg.zeroVec
+import org.futurerobotics.jargon.linalg.*
 import org.futurerobotics.jargon.math.MotionOnly
 import org.futurerobotics.jargon.math.MotionState
 import org.futurerobotics.jargon.math.Pose2d
-import org.futurerobotics.jargon.math.ValueMotionState
-import org.futurerobotics.jargon.pathing.Path
-import org.futurerobotics.jargon.pathing.PointPath
-import org.futurerobotics.jargon.pathing.TrajectoryCompleteCallback
-import org.futurerobotics.jargon.pathing.TrajectoryWithCallbacks
+import org.futurerobotics.jargon.math.convert.*
+import org.futurerobotics.jargon.mechanics.FixedWheelDriveModel
 import org.futurerobotics.jargon.pathing.trajectory.Trajectory
-import org.futurerobotics.jargon.running.CompletableJobCallback
 import org.futurerobotics.jargon.running.SuspendLoopSystemRunner
 import org.futurerobotics.jargon.running.Ticker
 import org.futurerobotics.jargon.running.asFrequencyRegulator
-import org.futurerobotics.jargon.util.replaceIf
+import org.futurerobotics.jargon.statespace.*
 
 /**
- * Autonomous drive. Feed it [trajectories], or [followPath], and it will go.
+ * Autonomous drive. Feed it [trajectories] and it will follow it.
  */
-class AutoDrive(motors: MotorsBlock, gyro: Gyro) : TickerSystem {
+class AutoDrive(motors: MotorsBlock, gyro: GyroBlock) : TickerSystem {
 
     companion object {
-        val xCoeff = PidCoefficients(1.0, 0.02, 0.1)
-        val yCoeff = PidCoefficients(1.0, 0.02, 0.1)
-        val hCoeff = PidCoefficients(2.0, 0.02, 0.1)
+        //pid coeffs for position controller.
+        val xCoeff = PidCoefficients(1.0, 0.1, 0.1)
+        val yCoeff = PidCoefficients(1.0, 0.1, 0.1)
+        val hCoeff = PidCoefficients(1.0, 0.1, 0.1)
     }
 
-    /**
-     * Flipped = red side
-     */
-    var isFlipped = false
-
-
-    val trajectories = ExternalQueue<TrajectoryWithCallbacks>()
-    val currentPosition = Monitor<Pose2d>()
-
-    private val gyroBlock = GyroBlock(gyro)
-    private val poseOverrideQueue = ExternalQueue<Pose2d>()
-
-    private fun Pose2d.flipPose(): Pose2d {
-        return Pose2d(x, -y, -heading)
-    }
-
+    val trajectories = ExternalQueue<Trajectory>()
     private val system = buildBlockSystem {
-        val reference =
-            TimeOnlyMotionProfileFollower<MotionState<Pose2d>>(
-                ValueMotionState.ofAll(Pose2d.ZERO)
-            ).apply {
+        val follower =
+            TimeOnlyMotionProfileFollower(MotionState.ofAll(Pose2d.ZERO)).apply {
                 profileInput from trajectories.output
-            }.output.pipe { ref ->
-                ref.replaceIf(isFlipped) {
-                    ValueMotionState(
-                        it.value.flipPose(),
-                        it.deriv.flipPose(),
-                        it.secondDeriv.flipPose()
-                    )
-                }
             }
-        val positionController =
-            HolonomicPidBotPoseController(this, xCoeff, yCoeff, hCoeff).apply {
-                this.reference from reference
-            }
+        val positionController = HolonomicPidBotPoseController(
+            this,
+            xCoeff,
+            yCoeff,
+            hCoeff
+        ).apply {
+            reference from follower.output
+        }
 
-        VelocityController(this).apply {
+        VelocityController(this, SYSTEM_PERIOD).apply {
             motionReference from positionController.signal
             voltageSignal into motors.motorVolts
             velocityMeasurement from motors.motorVelocities
         }
-        val localizer = BoundedLocalizer(this, driveModel).apply {
-            headingMeasurement from gyroBlock.headingMeasurement
+        EncoderAndStrictGyroLocalizer(
+            this,
+            driveModel
+        ).apply {
+            headingMeasurement from gyro.headingMeasurement
             motorPositions from motors.motorPositions
+
             globalPose into positionController.state
-            poseOverride from poseOverrideQueue.output
         }
-        currentPosition.input from localizer.globalPose
-
     }
-
-    fun setPose(pose: Pose2d) {
-        gyroBlock.initialHeading = pose.heading //kinda not necessary, but eh.
-        poseOverrideQueue.clear()
-        poseOverrideQueue += pose
-    }
-
-    fun followPath(path: Path): Job {
-        return followTraj(motionConstraints.generateTrajectory(path, genParams))
-    }
-
-    fun followTraj(trajectory: Trajectory): Job {
-        val job = Job()
-        val callback = TrajectoryCompleteCallback(CompletableJobCallback(job))
-        trajectories += TrajectoryWithCallbacks(trajectory, setOf(callback))
-        return job
-    }
-
-    fun resetInitialPose(pose: Pose2d) {
-        setPose(pose)
-        followPath(PointPath(pose))
-    }
-
 
     override fun launchSystem(scope: CoroutineScope, ticker: Ticker) {
         scope.launch {
@@ -124,23 +71,96 @@ class AutoDrive(motors: MotorsBlock, gyro: Gyro) : TickerSystem {
     }
 }
 
-class VelocityController(builder: BlockArrangementBuilder) {
-    val motionReference: Block.Input<MotionOnly<Pose2d>>
-    val voltageSignal: Block.Output<Vec>
-    val velocityMeasurement: Block.Input<Vec>
+fun botVelocityStateSpaceSystem(
+    driveModel: FixedWheelDriveModel,
+    period: Double
+): StateSpaceRunner {
+    val continuousMatrices = DriveStateSpaceModels.poseVelocityController(driveModel, driveModel)
+    val qrCost = QRCost(
+        listOf(
+            4 * inches / s,
+            4 * inches / s,
+            0.5 * radians / s
+        )
+            .map { 1 / (it * it) }
+            .let { diagMat(it) },
+        (5 * volts)
+            .let { 1 / (it * it) }
+            .let { idenMat(4) * it }
+    )
+    val discreteMatrices = continuousMatrices.discretize(period)
+    val k = continuousLQR(continuousMatrices, qrCost)
+    val kff = plantInversion(discreteMatrices)
+    //augment u-error
+    val (A, B, C) = continuousMatrices
+    val aAug = concat2x2dynamic(A, B, 0, 0)
+    val bAug = concatCol(B, zeroMat(4, 4))
+    val cAug = concatRow(C, zeroMat(4, 4))
+    val kAug = concatRow(k, idenMat(4) * 0.0) * 0.0
+    val kffAug = concatRow(kff, idenMat(4))
+    val augmentedMatrices = ContinuousStateSpaceMatrices(aAug, bAug, cAug).discretize(period)
+    val stateModifier = object : StateModifier {
+        private val zeroVec = zeroVec(4)
+        override fun augmentInitialState(x: Vec, prevXAug: Vec?): Vec {
+            return if (prevXAug == null) x.append(zeroVec)
+            else x.append(prevXAug[3 until 3 + 4])
+        }
+
+        override fun augmentReference(r: Vec): Vec {
+            return r.append(zeroVec)
+        }
+
+        override fun deAugmentState(xAug: Vec): Vec {
+            return xAug
+//            return xAug[0 until 4]
+        }
+    }
+    val noiseCovariance = NoiseCovariance(
+        zeroMat(7, 7).apply {
+            //guesstimates. Approximate.
+            this[0, 0] = idenMat(2) * (5 * `in` / s / s * period)
+            this[2, 2] = 10 * deg / s / s * period
+            this[3, 3] = idenMat(4) * (6.0 * volts / s / s * period)
+        },
+        idenMat(4) * (20 * deg / s * period) //not due to measurement, but slippage.
+    )
+    val initialProcessCovariance = zeroMat(7, 7).apply {
+        this[0, 0] = idenMat(2) * 0.0 //we pretty sure velocity is 0.
+        this[2, 2] = 0.0
+        this[3, 3] = idenMat(4) * (1.0 * period)
+    }
+    return StateSpaceRunnerBuilder()
+        .addStateModifier(stateModifier)
+        .setMatrices(augmentedMatrices)
+        .addGainController(kAug)
+        .addReferenceTracking(kffAug)
+        .addSignalModifier(SignalLimiter(-11.0, 11.0))
+        .addKalmanFilter {
+            setNoiseCovariance(noiseCovariance)
+            setInitialProcessCovariance(initialProcessCovariance)
+        }.build()
+}
+
+class VelocityController(builder: BlockArrangementBuilder, period: Double) {
+    val motionReference: Block.Input<MotionOnly<Pose2d>> = TODO()
+    val voltageSignal: Block.Output<Vec> = TODO()
+    val velocityMeasurement: Block.Input<Vec> = TODO()
 
     init {
         with(builder) {
             val toState = BotMotionToVecVelState()
             motionReference = toState.input
             val velState = toState.output
-            StateSpaceRunnerBlock(
-                BotVelocityStateSpaceModel.getRunner(), zeroVec(3)
-            ).also {
-                it.referenceMotionState from velState
-                voltageSignal = it.signal
-                velocityMeasurement = it.measurement
-            }
+//            StateSpaceRunnerBlock(
+//                botVelocityStateSpaceSystem(
+//                    driveModel,
+//                    period
+//                ), zeroVec(3)
+//            ).also {
+//                it.referenceMotionState from velState
+//                this@VelocityController.voltageSignal = it.signal
+//                velocityMeasurement = it.measurement
+//            }
         }
     }
 }

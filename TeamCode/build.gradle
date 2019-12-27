@@ -25,14 +25,18 @@ dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
 
     //todo: Make not local.
-    implementation "org.futurerobotics.jargon:all:0.1.0-SNAPSHOT"
+    implementation "org.futurerobotics.jargon:core:0.1.0-SNAPSHOT"
+    implementation "org.futurerobotics.jargon:pathing:0.1.0-SNAPSHOT"
+    implementation "org.futurerobotics.jargon:blocks:0.1.0-SNAPSHOT"
+    implementation "org.futurerobotics.jargon:state-space:0.1.0-SNAPSHOT"
+    implementation "org.futurerobotics.jargon:coroutine-support:0.1.0-SNAPSHOT"
     implementation "org.futurerobotics.jargon:ftc-bridge:0.1.0-SNAPSHOT"
     implementation project(":bluejay")
 
 
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.5.2'
     testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.5.2'
-    testImplementation "org.knowm.xchart:xchart:3.5.4"
+    testImplementation "org.knowm.xchart:xchart:3.6.0"
 }
 android {
     kotlinOptions {
