@@ -5,10 +5,8 @@ import org.firstinspires.ftc.teamcode.system.BotSystem
 import org.firstinspires.ftc.teamcode.system.CoroutineScopeElement
 import org.firstinspires.ftc.teamcode.system.Element
 import org.firstinspires.ftc.teamcode.system.OpModeElement
-import org.futurerobotics.ftcutils.CoroutineOpMode
-import kotlin.collections.component1
-import kotlin.collections.component2
-import kotlin.collections.set
+import org.futurerobotics.jargon.ftcbridge.CoroutineOpMode
+import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.EmptyCoroutineContext
 
 /**
@@ -17,23 +15,14 @@ import kotlin.coroutines.EmptyCoroutineContext
  * - [OpModeElement] will be _replaced_
  * - [CoroutineScopeElement] will be overriden (or rather it is reused).
  */
-abstract class BotSystemsOpMode(
-    private val initialElements: Collection<Element>
-) : CoroutineOpMode(
-    (initialElements)
-        .filterIsInstance<CoroutineScopeElement>()
-        .let {
-            require(it.size <= 1) { "Cannot have two elements with the same identifier" }
-            it.firstOrNull()?.coroutineContext ?: EmptyCoroutineContext
-        }
-) {
+abstract class BotSystemsOpMode @JvmOverloads constructor(
+    coroutineContext: CoroutineContext = EmptyCoroutineContext
+) : CoroutineOpMode(coroutineContext) {
 
-    constructor(vararg initialElements: Element) : this(initialElements.asList())
-
-    protected open fun additionalElements(): List<Element> = emptyList()
+    protected abstract fun getElements(): List<Element>
 
     final override suspend fun runOpMode() = coroutineScope {
-        val initialElements = (initialElements + additionalElements())
+        val initialElements = getElements()
             .groupBy { it.identifierClass }
             .entries.associateTo(HashMap()) { (cls, list) ->
             if (cls != null)

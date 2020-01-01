@@ -4,31 +4,29 @@ import org.firstinspires.ftc.teamcode.robot.Wheels;
 import org.firstinspires.ftc.teamcode.system.BotSystem;
 import org.firstinspires.ftc.teamcode.system.DependsOn;
 import org.firstinspires.ftc.teamcode.system.Element;
-import org.firstinspires.ftc.teamcode.system.LinearElement;
+import org.firstinspires.ftc.teamcode.system.LinearRunnerElement;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 @SuppressWarnings("unchecked")
-public class SampleOpMode extends BotSystemsOpMode {
-	public SampleOpMode() {
-		super(new DependsOn(Wheels.class));
-	}
+public class SanityCheck extends BotSystemsOpMode {
 	
 	@NotNull
 	@Override
-	protected List<Element> additionalElements() {
-		return Collections.singletonList(new Additional());
+	protected List<Element> getElements() {
+		return Arrays.asList(new Additional(),new DependsOn(Wheels.class));
 	}
 	
-	private class Additional extends LinearElement {
+	private class Additional extends LinearRunnerElement {
+		private Wheels wheels = null;
 		@Override
 		protected void moreInit(@NotNull BotSystem botSystem) {
+			wheels = botSystem.get(Wheels.class);
 		}
 		
 		@Override
-		protected void runElement() throws InterruptedException {
+		protected void runElement() {
 			telemetry.addLine("Hello sir");
 			waitForStart();
 			while (opModeIsActive()) {
@@ -36,7 +34,6 @@ public class SampleOpMode extends BotSystemsOpMode {
 				telemetry.update();
 				sleep(200);
 			}
-			requestOpModeStop();
 		}
 	}
 }

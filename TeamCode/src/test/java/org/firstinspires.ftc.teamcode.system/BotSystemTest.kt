@@ -47,7 +47,7 @@ private class Dependency2 : AbstractElement(/*Dependency1::class.java*/) {
 }
 
 
-private class LoopAFewTimes : LinearElement() {
+private class LoopAFewTimes : LinearRunnerElement() {
     override fun moreInit(botSystem: BotSystem) {
     }
 
@@ -59,7 +59,7 @@ private class LoopAFewTimes : LinearElement() {
     }
 }
 
-private class Send : CoroutineElement() {
+private class Send : CoroutineRunnerElement() {
     val channel = Channel<String>()
     override fun moreInit1(botSystem: BotSystem) {
     }
@@ -74,7 +74,7 @@ private class Send : CoroutineElement() {
     }
 }
 
-private class Receive : CoroutineElement() {
+private class Receive : CoroutineRunnerElement() {
     private val send: Send by botSystem
     override fun moreInit1(botSystem: BotSystem) {
     }

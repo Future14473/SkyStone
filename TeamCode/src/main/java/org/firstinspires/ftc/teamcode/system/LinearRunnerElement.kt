@@ -12,9 +12,9 @@ import java.util.concurrent.Executors
  *
  * This still uses coroutines for cancellation/exception handling behind the scenes.
  *
- * @see CoroutineElement for a coroutine variant of this
+ * @see CoroutineRunnerElement for a coroutine variant of this
  */
-abstract class LinearElement(vararg dependsOn: Class<out Element>) :
+abstract class LinearRunnerElement(vararg dependsOn: Class<out Element>) :
     AbstractElement(*dependsOn, CoroutineScopeElement::class.java), StartableElement {
 
     private var executorService: ExecutorService? = null
@@ -133,7 +133,7 @@ abstract class LinearElement(vararg dependsOn: Class<out Element>) :
         scope = botSystem.get(CoroutineScopeElement::class.java)
         moreInit(botSystem)
         scope.launch {
-            runAndWaitInExecutor(executorService!!) {
+            runInExecutorAndWait(executorService!!) {
                 runElement()
             }
         }

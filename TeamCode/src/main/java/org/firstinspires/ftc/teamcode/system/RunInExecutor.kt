@@ -1,20 +1,18 @@
 package org.firstinspires.ftc.teamcode.system
 
-import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.CompletableDeferred
-import kotlinx.coroutines.NonCancellable
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.*
 import java.util.concurrent.ExecutorService
 
 private class WrappedException(e: Throwable) : Throwable(e)
 
 /**
  * Switches from suspend world to blocking world. Runs the given [callable] in the the given executor,
- * and suspends current coroutine until it is done. Rethrows exceptions if they exist.
+ * and suspends current coroutine until it is done. Rethrows exceptions.
  *
- * This may throw [CancellationException] when this is cancelled AND the callable completable normally.
+ * Will cancel the task when job is cancelled. WILL WAIT FOR TASK FINISH ON CANCELLATION.
  */
-suspend fun <T> runAndWaitInExecutor(executor: ExecutorService, callable: () -> T): T {
+suspend fun <T> runInExecutorAndWait(executor: ExecutorService, callable: () -> T): T {
+
     val deferred = CompletableDeferred<T>()
     val future = executor.submit {
         try {
@@ -39,7 +37,7 @@ suspend fun <T> runAndWaitInExecutor(executor: ExecutorService, callable: () -> 
             throw e
         }
     } catch (e: WrappedException) {
-        throw e.cause!!
+        throw e.cause!! //it might be another cancellation exception...
     }
 }
 

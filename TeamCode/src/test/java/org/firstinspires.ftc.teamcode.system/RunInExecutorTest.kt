@@ -4,6 +4,8 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Test
+import java.util.concurrent.Callable
+import java.util.concurrent.ExecutionException
 import java.util.concurrent.Executors
 import kotlin.system.measureTimeMillis
 
@@ -16,7 +18,7 @@ class RunInExecutorTest {
 
         runBlocking {
             val backgroundLaunch = launch {
-                runAndWaitInExecutor(executor) {
+                runInExecutorAndWait(executor) {
                     try {
                         println("B: Running and sleeping")
                         Thread.sleep(100)
@@ -36,6 +38,20 @@ class RunInExecutorTest {
                 backgroundLaunch.join()
             }
             println("A: Join done took $time millis ")
+        }
+    }
+
+    @Test
+    fun willItEvenRun() {
+        val executor = Executors.newSingleThreadExecutor()
+        val future = executor.submit(Callable {
+            println("I RAN")
+            "Result"
+        })
+        try {
+            println(future.get())
+        } catch (e: ExecutionException) {
+            e.printStackTrace()
         }
     }
 }

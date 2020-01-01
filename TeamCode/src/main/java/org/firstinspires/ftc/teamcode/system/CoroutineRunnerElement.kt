@@ -9,9 +9,9 @@ import kotlin.coroutines.coroutineContext
  *
  * This is also a [DelegatesElement] since coroutines are kotlin only.
  *
- * @see LinearElement for a variant like LinearOpMode instead (uses blocking, and has a dedicated thread).
+ * @see LinearRunnerElement for a variant like LinearOpMode instead (uses blocking, and has a dedicated thread).
  */
-abstract class CoroutineElement(vararg dependsOn: Class<out Element>) :
+abstract class CoroutineRunnerElement(vararg dependsOn: Class<out Element>) :
     DelegatesElement(*dependsOn, CoroutineScopeElement::class.java), StartableElement {
 
     private val startedJob = Job()
