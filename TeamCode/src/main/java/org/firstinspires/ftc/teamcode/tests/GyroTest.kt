@@ -2,28 +2,26 @@ package org.firstinspires.ftc.teamcode.tests
 
 import com.qualcomm.robotcore.eventloop.opmode.Disabled
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp
-import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.delay
-import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit
-import org.firstinspires.ftc.teamcode.lib.system.BotSystems
-import org.firstinspires.ftc.teamcode.lib.system.RobotSystemImpl
-import org.futurerobotics.jargon.ftcbridge.CoroutineOpMode
+import org.firstinspires.ftc.teamcode.hardware.Hardware
+import org.firstinspires.ftc.teamcode.system.ControlLoop
+import org.futurerobotics.botsystem.Element
+import org.futurerobotics.botsystem.LoopElement
+import org.futurerobotics.botsystem.ftc.BotSystemsOpMode
 
-@TeleOp
+@TeleOp(name = "Gyro Test", group = "Test")
 @Disabled
-class GyroTest : CoroutineOpMode() {
+class GyroTest : BotSystemsOpMode() {
 
-    override suspend fun runOpMode() = coroutineScope {
-        val bot = RobotSystemImpl(this@GyroTest, BotSystems.Gyro)
-        val gyro = bot.gyro
-        waitForStart()
-        while (opModeIsActive()) {
-            delay(100)
-            val angle = gyro.imu.angularOrientation.toAngleUnit(AngleUnit.DEGREES)
-            telemetry.run {
-                addLine("angle: $angle")
-                update()
-            }
+    override fun getElements(): Array<Element> = arrayOf(additional)
+
+    private val additional = object : LoopElement() {
+        init {
+            loopOn<ControlLoop>()
+        }
+
+        private val hardware: Hardware by dependency()
+        override fun loop() {
+            telemetry.addLine("Angle: ${hardware.gyro!!.fullOrientation}")
         }
     }
 }
