@@ -5,6 +5,7 @@ import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
+import org.firstinspires.ftc.teamcode.mecanum.Calculations;
 import org.firstinspires.ftc.teamcode.mecanum.Drivetrain;
 
 /**
@@ -21,9 +22,9 @@ import org.firstinspires.ftc.teamcode.mecanum.Drivetrain;
  * Remove or comment out the @Disabled line to add this opmode to the Drive r Station OpMode list
  */
 
-@Autonomous(name="AutonomousDemo", group="Iterative Opmode")
+@Autonomous(name="DrivetrainOnly", group="Iterative Opmode")
 //@Disabled
-public class AutonomousDemo extends OpMode
+public class TeleOpDrivetrainOnly extends OpMode
 {
     private Drivetrain MecanumDrive;
 
@@ -59,17 +60,17 @@ public class AutonomousDemo extends OpMode
      */
     @Override
     public void loop() {
-        //test forward movement
-       MecanumDrive.move(1,0,0);
-       MecanumDrive.setPower(0.0);
+      // make the strafe/forward code
+        // make the  power respond to both translation and turnpower
+        double translationPower = Calculations.averagePower(gamepad2.left_stick_x, gamepad2.left_stick_y);
+        double turnPower = Calculations.averagePower(gamepad2.right_stick_x, gamepad2.right_stick_y);
+        double outputPower = Calculations.averagePower(translationPower, turnPower);
 
-       // test strafe movement
-        MecanumDrive.move(0,1,0);
-        MecanumDrive.setPower(0.0);
+        //only move if someone is pressing the joysticks
+        if (outputPower != 0){
+            MecanumDrive.setPower(outputPower);
+        }
 
-        //test turn
-        MecanumDrive.move(0,0,90);
-        MecanumDrive.setPower(0.0);
 
        telemetry.addData("Status", "Run Time: " + runtime.toString());
     }

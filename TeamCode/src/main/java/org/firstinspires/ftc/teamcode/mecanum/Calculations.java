@@ -1,5 +1,7 @@
 package org.firstinspires.ftc.teamcode.mecanum;
 
+import com.qualcomm.robotcore.util.Range;
+
 public class Calculations {
     /* y
        ^  right 2          right 1
@@ -36,6 +38,15 @@ public class Calculations {
         left2 = (int) (forward - strafe + turn);
     }
 
+    public static double averagePower(double power1, double power2){
+        // put the powers in the range of motor power
+        power1 = Range.clip(power1, -1.0,1.0);
+        power2 = Range.clip(power2, -1.0,1.0);
+
+        double average = (power1 + power2)/2;
+        return average;
+    }
+
     public static double convertInchesToEncoders(double inches) {
         double rotations = inches / wheelCircum;
         double encoders = rotations * encodersPerRotation;
@@ -45,21 +56,5 @@ public class Calculations {
     public static double convertTurnToInches(double turn) {
         turn = Math.toRadians(turn);
         return turn * radius;
-    }
-
-    public static int getMotor1() {
-        return right1;
-    }
-
-    public static int getMotor2() {
-        return right2;
-    }
-
-    public static int getMotor3() {
-        return left2;
-    }
-
-    public static int getMotor4() {
-        return left1;
     }
 }
