@@ -1,17 +1,18 @@
-package org.firstinspires.ftc.teamcode;
+package org.firstinspires.ftc.teamcode.mecanum;
 
 public class Calculations {
     /* y
-       ^  2          1
+       ^  right 2          right 1
        |
-       |  3          4
+       |  left 2          left  1
        ~ -  - > x
      */
 
-    static int motor1_encoders;
-    static int motor2_encoders;
-    static int motor3_encoders;
-    static int motor4_encoders;
+    static int right1;
+    static int right2;
+
+    static int left1;
+    static int left2;
 
     //turning variables
     static double radius = 16.97; //todo real radius
@@ -28,10 +29,11 @@ public class Calculations {
 
         strafe = convertInchesToEncoders(strafe);
 
-        motor1_encoders = (int) (forward - strafe - turn);
-        motor2_encoders = (int) (forward + strafe + turn);
-        motor3_encoders = (int) (forward - strafe + turn);
-        motor4_encoders = (int) (forward + strafe - turn);
+        right1 = (int) (forward - strafe - turn);
+        right2 = (int) (forward + strafe + turn);
+
+        left1 = (int) (forward + strafe - turn);
+        left2 = (int) (forward - strafe + turn);
     }
 
     public static double convertInchesToEncoders(double inches) {
@@ -46,18 +48,18 @@ public class Calculations {
     }
 
     public static int getMotor1() {
-        return motor1_encoders;
+        return right1;
     }
 
     public static int getMotor2() {
-        return motor2_encoders;
+        return right2;
     }
 
     public static int getMotor3() {
-        return motor3_encoders;
+        return left2;
     }
 
     public static int getMotor4() {
-        return motor4_encoders;
+        return left1;
     }
 }
