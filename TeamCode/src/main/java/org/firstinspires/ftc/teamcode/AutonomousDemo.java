@@ -3,13 +3,9 @@ package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
-import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.teamcode.mecanum.Drivetrain;
-
-import java.io.IOException;
 
 /**
  * This file contains an example of an iterative (Non-Linear) "OpMode".
@@ -29,7 +25,7 @@ import java.io.IOException;
 //@Disabled
 public class AutonomousDemo extends OpMode
 {
-    private Drivetrain mecanumDrive;
+    private Drivetrain MecanumDrive;
 
 
     private ElapsedTime runtime = new ElapsedTime();
@@ -37,6 +33,7 @@ public class AutonomousDemo extends OpMode
     public void init() {
         // make drivetrain
         Drivetrain mecanumDrive = new Drivetrain(hardwareMap);
+
 
         // output message to drivers
         telemetry.addData("Status", "The Future is NOW!");
@@ -47,7 +44,6 @@ public class AutonomousDemo extends OpMode
      */
     @Override
     public void init_loop() {
-
     }
 
     /*
@@ -63,28 +59,26 @@ public class AutonomousDemo extends OpMode
      */
     @Override
     public void loop() {
-        autonomousWheels.moveWheelsFeetPower(2);
-        shadowCaster.moveLinearActuatorUp(1120);
-        shadowCaster.uncoverLight();
-        // DO CV DETECTION
-        boolean detectedGerms = true; // change this with the real cv detection boolean
-        try {
-            odometryGraph.graphData(detectedGerms);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        shadowCaster.coverLight();
-        shadowCaster.moveLinearActuatorDown(1120);
+        //test forward movement
+       MecanumDrive.move(1,0,0);
+       MecanumDrive.setPower(0.0);
 
-        autonomousWheels.turnAngle(90);
-        telemetry.addData("Status", "Run Time: " + runtime.toString());
+       // test strafe movement
+        MecanumDrive.move(0,1,0);
+        MecanumDrive.setPower(0.0);
+
+        //test turn
+        MecanumDrive.move(0,0,90);
+        MecanumDrive.setPower(0.0);
+
+       telemetry.addData("Status", "Run Time: " + runtime.toString());
     }
 
     /*
      * Code to run ONCE after the driver hits STOP
      */
     @Override
-    public void stop() {telemetry.addData("Ending Note", "Good Job Team!");
+    public void stop() {telemetry.addData("Ending Note", "Did it work?");
     }
 
 }

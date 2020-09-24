@@ -23,6 +23,9 @@ public class Drivetrain {
         left1.setDirection(DcMotorSimple.Direction.FORWARD);
         left2.setDirection(DcMotorSimple.Direction.REVERSE);
 
+        // default power
+        setPower(0.2);
+
     }
 
     public void move(double forward, double strafe, double turn){
