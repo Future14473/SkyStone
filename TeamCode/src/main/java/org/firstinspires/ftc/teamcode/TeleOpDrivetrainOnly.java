@@ -67,10 +67,11 @@ public class TeleOpDrivetrainOnly extends OpMode
         double outputPower = Calculations.averagePower(translationPower, turnPower);
 
         //only move if someone is pressing the joysticks
-        if (outputPower != 0){
-            MecanumDrive.setPower(outputPower);
+        if (outputPower == 0){
+            MecanumDrive.setPower(0.0);
         }
 
+        MecanumDrive.setPower(outputPower);
 
        telemetry.addData("Status", "Run Time: " + runtime.toString());
     }
