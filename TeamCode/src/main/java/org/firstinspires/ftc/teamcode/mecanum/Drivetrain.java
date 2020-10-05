@@ -32,9 +32,9 @@ public class Drivetrain {
         // get the desired encoder position for each motor
         Calculations.updateEncoders(forward, strafe, turn);
 
-        int right1Position = findEncoderPosition(Calculations.right1, right1);
-        int right2Position = findEncoderPosition(Calculations.right2, right2);
-        int left1Position = findEncoderPosition(Calculations.left1, left1);
+        int right1Position = findEncoderPosition(Calculations.rightFront, right1);
+        int right2Position = findEncoderPosition(Calculations.leftFront, right2);
+        int left1Position = findEncoderPosition(Calculations.rightBack, left1);
         int left2Position = findEncoderPosition(Calculations.left2, left1);
 
         // move the motors to correct position

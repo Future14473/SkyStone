@@ -10,10 +10,10 @@ public class Calculations {
        ~ -  - > x
      */
 
-    static int right1;
-    static int right2;
+    static int rightFront;
+    static int leftFront;
 
-    static int left1;
+    static int rightBack;
     static int left2;
 
     //turning variables
@@ -31,10 +31,10 @@ public class Calculations {
 
         strafe = convertInchesToEncoders(strafe);
 
-        right1 = (int) (forward - strafe - turn);
-        right2 = (int) (forward + strafe + turn);
+        rightFront = (int) (forward - strafe - turn);
+        leftFront = (int) (forward + strafe + turn);
 
-        left1 = (int) (forward + strafe - turn);
+        rightBack = (int) (forward + strafe - turn);
         left2 = (int) (forward - strafe + turn);
     }
 
